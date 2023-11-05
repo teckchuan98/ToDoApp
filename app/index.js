@@ -1,27 +1,24 @@
 import { View, Text, SafeAreaView, TouchableOpacity, TextInput, StyleSheet, KeyboardAvoidingView} from 'react-native'
 import React, { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from './helpers/constants';
 
-// key constants
-const FIRST_LAUNCH = "firstLaunch";
-const DEFAULT_CATEGORY = "defaultCategory";
-const CATEGORY = "category";
+let currCategory = '';
 
 const ToDo = () => {
   const [item, setItem]= useState('');
-  const items = [];
-  // const [items, setItems] = useState([]);
+  const [items, setItems] = useState([]);
   const [isFirstLaunch, setIsFirstLaunch] = useState(false);
-  const [currCategory, setCurrCategory] = useState("");
 
   const handleAddItem = async() => {
     // add item to list of items
     // ...items means all items append with item 
     // add into the async storage
     items.push(item);
+    setItems(items);
     setItem(null);
     try {
-      await AsyncStorage.setItem("default", JSON.stringify(items));
+      await AsyncStorage.setItem(currCategory, JSON.stringify(items));
     } catch {
       console.log("Adding Items Into List Failed");
     }
@@ -29,7 +26,7 @@ const ToDo = () => {
   }
 
   const checkFirstLaunch = async() => {
-    let launched = await AsyncStorage.getItem(FIRST_LAUNCH);
+    let launched = await AsyncStorage.getItem(Constants.FIRST_LAUNCH);
     console.log(launched);
     launched === null ? 
       firstLaunch() : notFirstLaunch(); 
@@ -37,21 +34,38 @@ const ToDo = () => {
 
   const firstLaunch = async() => {
     try {
-      await AsyncStorage.setItem(FIRST_LAUNCH, "launched");
+      await AsyncStorage.setItem(Constants.FIRST_LAUNCH, "launched");
     } catch {
       console.log("Failed to detect first launch");
     }
+
     try {
-      await AsyncStorage.setItem("default", JSON.stringify(items));
+      await AsyncStorage.setItem(Constants.CATEGORY, Constants.DEFAULT_CATEGORY);
+      currCategory = Constants.DEFAULT_CATEGORY;
     } catch {
       console.log("Failed to set default category");
+    }
+
+    try {
+      await AsyncStorage.setItem(currCategory, JSON.stringify(items));
+    } catch {
+      console.log("Failed to set default category's todo list");
     }
   }
 
   const notFirstLaunch = async() => {
+    // get the default category
     try {
-      await AsyncStorage.getItem("default").then(
-        items = JSON.parse(defaultList)
+      // why can I not useState for category ???
+      await AsyncStorage.getItem(Constants.CATEGORY).then((text)=>{currCategory = text})
+    } catch {
+      console.log("Failed to retrieve category");
+    }
+
+    try {
+      await AsyncStorage.getItem(currCategory).then((defaultList) => {
+          setItems(JSON.parse(defaultList));
+        }
       );
     } catch {
       console.log("Failed to retrieve to do list");
