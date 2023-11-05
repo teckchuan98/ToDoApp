@@ -2,49 +2,66 @@ import { View, Text, SafeAreaView, TouchableOpacity, TextInput, StyleSheet, Keyb
 import React, { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// key constants
 const FIRST_LAUNCH = "firstLaunch";
 const DEFAULT_CATEGORY = "defaultCategory";
 const CATEGORY = "category";
 
 const ToDo = () => {
   const [item, setItem]= useState('');
-  const [items, setItems] = useState([]);
+  const items = [];
+  // const [items, setItems] = useState([]);
   const [isFirstLaunch, setIsFirstLaunch] = useState(false);
   const [currCategory, setCurrCategory] = useState("");
 
-  const handleAddItem = () => {
+  const handleAddItem = async() => {
     // add item to list of items
     // ...items means all items append with item 
-    setItems([...items, item]);
+    // add into the async storage
+    items.push(item);
     setItem(null);
+    try {
+      await AsyncStorage.setItem("default", JSON.stringify(items));
+    } catch {
+      console.log("Adding Items Into List Failed");
+    }
+
   }
 
   const checkFirstLaunch = async() => {
     let launched = await AsyncStorage.getItem(FIRST_LAUNCH);
-    console.log("Test");
     console.log(launched);
-    launched === null ? await AsyncStorage.setItem(FIRST_LAUNCH, "launched") : 
-      setIsFirstLaunch(true);
+    launched === null ? 
+      firstLaunch() : notFirstLaunch(); 
   }
 
-  // const doFirstLaunchStuff = async() => {
-  //   // because first launch has no data 
-  //   await AsyncStorage.setItem(FIRST_LAUNCH, "launched");
-    
-  //   await AsyncStorage.setItem(DEFAULT_CATEGORY, JSON.stringify(items));
-  //   await AsyncStorage.setItem(CATEGORY, DEFAULT_CATEGORY);
-  //   setCurrCategory(DEFAULT_CATEGORY);
+  const firstLaunch = async() => {
+    try {
+      await AsyncStorage.setItem(FIRST_LAUNCH, "launched");
+    } catch {
+      console.log("Failed to detect first launch");
+    }
+    try {
+      await AsyncStorage.setItem("default", JSON.stringify(items));
+    } catch {
+      console.log("Failed to set default category");
+    }
+  }
 
-  // }
+  const notFirstLaunch = async() => {
+    try {
+      await AsyncStorage.getItem("default").then(
+        items = JSON.parse(defaultList)
+      );
+    } catch {
+      console.log("Failed to retrieve to do list");
+    }
+  }
 
-  // const doNotFirstLaunchStuff = async() => {
-  //   // not first launch means there is stuff in category key
-  //   let listOfToDos = 
-  // }
 
   useEffect(()=>{
-    checkFirstLaunch()
-  }
+      checkFirstLaunch()
+    }, []
   );
 
   return (
