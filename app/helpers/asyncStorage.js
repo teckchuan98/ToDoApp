@@ -2,7 +2,7 @@ import React from 'react'
 import Constants from './constants';
 
 const firstLaunch = async() => {
-    let currCategory = '';
+    let currCategory;
     try {
       await AsyncStorage.setItem(Constants.FIRST_LAUNCH, "launched");
     } catch {
@@ -25,8 +25,9 @@ const firstLaunch = async() => {
     return currCategory;
 }
 
-const notFirstLaunch = async(currCategory) => {
+const notFirstLaunch = async() => {
     // get the default category
+    let currCategory;
     try {
       // why can I not useState for category ???
       await AsyncStorage.getItem(Constants.CATEGORY).then((text)=>{currCategory = text})
@@ -42,7 +43,7 @@ const notFirstLaunch = async(currCategory) => {
     } catch {
       console.log("Failed to retrieve to do list");
     }
-
+    return currCategory;
   }
 
 

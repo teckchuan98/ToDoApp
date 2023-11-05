@@ -2,6 +2,7 @@ import { View, Text, SafeAreaView, TouchableOpacity, TextInput, StyleSheet, Keyb
 import React, { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from './helpers/constants';
+import {firstLaunch} from './helpers/asyncStorage';
 
 let currCategory = '';
 
@@ -28,8 +29,12 @@ const ToDo = () => {
   const checkFirstLaunch = async() => {
     let launched = await AsyncStorage.getItem(Constants.FIRST_LAUNCH);
     console.log(launched);
-    launched === null ? 
-      firstLaunch() : notFirstLaunch(); 
+    if (launched) {
+      currCategory = notFirstLaunch();
+    } else {
+      currCategory = firstLaunch();
+    }
+    
   }
 
   const firstLaunch = async() => {
