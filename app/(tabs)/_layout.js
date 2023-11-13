@@ -43,18 +43,6 @@ const _layout = () => {
                 )
             }
         }}/>
-        <Tabs.Screen name="settings" options={{
-            tabBarIcon: ({focused}) => {
-                return (
-                    <View style={{
-                        alignItems:"center",
-                        justifyContent:"center",
-                    }}>
-                        <FontAwesome name="pencil" size={24} color={focused?"#FFA500":"#111"}/>
-                    </View>
-                )
-            }
-        }}/>
     </Tabs>
   )
 }

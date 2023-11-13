@@ -1,16 +1,20 @@
-import { View, Text, SafeAreaView, TouchableOpacity, TextInput, StyleSheet, KeyboardAvoidingView} from 'react-native'
+import { View, Text, TouchableOpacity, TextInput, StyleSheet, KeyboardAvoidingView} from 'react-native'
 import React, { useEffect, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from '../helpers/constants';
-import {firstLaunch} from '../helpers/asyncStorage';
+import {firstLaunch, afterLaunch, getItemFromCategory} from '../helpers/asyncStorage';
 import Item from '../components/item';
 
 let currCategory = '';
 
 const ToDo = () => {
+  useEffect(()=>{
+      checkFirstLaunch()
+    }, []
+  );
+
   const [item, setItem]= useState();
   const [items, setItems] = useState([]);
-  const [isFirstLaunch, setIsFirstLaunch] = useState(false);
 
   const handleAddItem = async() => {
     // add item to list of items
@@ -27,62 +31,37 @@ const ToDo = () => {
 
   }
 
+  // check first app launch or ..
   const checkFirstLaunch = async() => {
     let launched = await AsyncStorage.getItem(Constants.FIRST_LAUNCH);
     console.log(launched);
     if (launched) {
-      currCategory = notFirstLaunch();
+      isNotFirstLaunch() ;
     } else {
-      currCategory = firstLaunch();
-    }
-    
-  }
-
-  const firstLaunch = async() => {
-    try {
-      await AsyncStorage.setItem(Constants.FIRST_LAUNCH, "launched");
-    } catch {
-      console.log("Failed to detect first launch");
-    }
-
-    try {
-      await AsyncStorage.setItem(Constants.CATEGORY, Constants.DEFAULT_CATEGORY);
-      currCategory = Constants.DEFAULT_CATEGORY;
-    } catch {
-      console.log("Failed to set default category");
-    }
-
-    try {
-      await AsyncStorage.setItem(currCategory, JSON.stringify(items));
-    } catch {
-      console.log("Failed to set default category's todo list");
+      isFirstLaunch();
     }
   }
 
-  const notFirstLaunch = async() => {
-    // get the default category
-    try {
-      // why can I not useState for category ???
-      await AsyncStorage.getItem(Constants.CATEGORY).then((text)=>{currCategory = text})
-    } catch {
-      console.log("Failed to retrieve category");
-    }
-
-    try {
-      await AsyncStorage.getItem(currCategory).then((defaultList) => {
-          setItems(JSON.parse(defaultList));
-        }
-      );
-    } catch {
-      console.log("Failed to retrieve to do list");
-    }
+  const isNotFirstLaunch = async() => {
+    await afterLaunch().then(
+      value => {
+        currCategory = value;
+      }
+    ).catch(err => console.log(err));
+    await getItemFromCategory().then(
+      (list) => {
+        setItems(list);
+      }
+    ).catch(err=>console.log(err))
   }
 
-
-  useEffect(()=>{
-      checkFirstLaunch()
-    }, []
-  );
+  const isFirstLaunch = async() => {
+    await firstLaunch().then(
+      value => {
+        currCategory = value;
+      }
+    ).catch(err => console.log(err));
+  }
 
   return (
     <View style={styles.container}>
@@ -96,7 +75,7 @@ const ToDo = () => {
             items.map((item, index)=> {
               return (
                 <TouchableOpacity onPress={()=>{console.log("Outer")}}>
-                    <Item text={item}/>
+                    <Item id ={index} text={item}/>
                 </TouchableOpacity>
               )
             })
